@@ -64,7 +64,7 @@
 #       - name: Setup Node.js
 #         uses: actions/setup-node@v4
 #         with:
-#           node-version: '20'
+#           node-version: '20.19.0' # AI suggested using a Node version that satisfies ESLint 10’s engine requirement
 #           cache: 'npm'
 #
 #       - name: Install dependencies
