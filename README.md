@@ -17,11 +17,12 @@ startDocsServer({
   docsDir: "./docs",
   basePath: "/docs",
   title: "My Docs",
-  port: 3000
+  port: 3000,
 });
 ```
 
 Route mapping rules:
+
 - `/docs` -> `docs/index.md`
 - `/docs/getting-started` -> `docs/getting-started.md`
 - `/docs/api` -> `docs/api/index.md`
