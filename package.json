@@ -18,7 +18,9 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json",
     "clean": "rm -rf dist",
-    "lint": "eslint src --ext .ts"
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write .",
+    "test:integration": "vitest run tests/integration.test.ts"
   },
   "keywords": [
     "docs",
@@ -40,6 +42,11 @@
     "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^10.0.3",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.56.1"
+    "typescript-eslint": "^8.56.1",
+    "prettier": "^3.8.1",
+    "typescript": "^5.8.2",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }
