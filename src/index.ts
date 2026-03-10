@@ -18,7 +18,7 @@ const DEFAULT_BASE_PATH = "/";
 
 marked.setOptions({
   gfm: true,
-  breaks: true
+  breaks: true,
 });
 
 function normalizeBasePath(basePath: string): string {
@@ -117,9 +117,10 @@ function resolveRequestedFile(docsDir: string, reqPath: string): string[] {
     .replace(/^\/+/, "")
     .replace(/\.\.(\/|\\|$)/g, "");
 
-  const candidates = safePath === ""
-    ? ["index.md"]
-    : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")];
+  const candidates =
+    safePath === ""
+      ? ["index.md"]
+      : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")];
 
   return candidates.map((candidate) => path.resolve(docsDir, candidate));
 }
@@ -131,7 +132,8 @@ export function createDocsApp(options: DocsServerOptions): Express {
 
   const app = express();
 
-  const routes = basePath === "/" ? ["/", "/*docPath"] : [basePath, `${basePath}/*docPath`];
+  const routes =
+    basePath === "/" ? ["/", "/*docPath"] : [basePath, `${basePath}/*docPath`];
 
   app.get(routes, async (req, res) => {
     const reqPath = (req.params.docPath as string | undefined) ?? "";
@@ -155,7 +157,7 @@ export function createDocsApp(options: DocsServerOptions): Express {
 
     res.status(404).json({
       error: "Not Found",
-      message: `No markdown file found for route /${reqPath}`
+      message: `No markdown file found for route /${reqPath}`,
     });
   });
 

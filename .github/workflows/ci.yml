@@ -9,43 +9,54 @@ on:
       - main
 
 jobs:
-  #   # -------------------------------------------------------------
-  #   # 1. Formatting and Auto-Commit Job
-  #   # -------------------------------------------------------------
-  #   # This job automatically formats the code (e.g., using Prettier) and commits
-  #   # the changes back to the branch. This ensures all code is consistently formatted.
-  #   format:
-  #     name: Format Code and Commit
-  #     runs-on: ubuntu-latest
-  #     steps:
-  #       - name: Checkout repository
-  #         uses: actions/checkout@v4
-  #         with:
-  #           # Requires a Personal Access Token (PAT) if you want to trigger subsequent workflows with the commit
-  #           # Using github.head_ref ensures we checkout the PR branch rather than the merge commit.
-  #           token: ${{ secrets.GITHUB_TOKEN }}
-  #           ref: ${{ github.head_ref }}
-  #
-  #       - name: Setup Node.js
-  #         uses: actions/setup-node@v4
-  #         with:
-  #           node-version: '20'
-  #           cache: 'npm'
-  #
-  #       - name: Install dependencies
-  #         # npm ci is used for a clean, deterministic install based on package-lock.json
-  #         run: npm ci
-  #
-  #       - name: Run code formatting
-  #         # TODO: Add a "format" script in package.json (e.g., "prettier --write .")
-  #         run: npm run format
-  #
-  #       - name: Commit formatted code
-  #         # Uses a community action to commit changes back to the current branch
-  #         uses: stefanzweifel/git-auto-commit-action@v5
-  #         with:
-  #           commit_message: "chore: apply automated code formatting"
-  #           file_pattern: "src/**/*.ts package.json"
+  # -------------------------------------------------------------
+  # 1. Formatting and Auto-Commit Job
+  # -------------------------------------------------------------
+  # This job automatically formats the code (e.g., using Prettier) and commits
+  # the changes back to the branch. This ensures all code is consistently formatted.
+  format:
+    name: Format Code and Commit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # For pull requests, checkout the source branch instead of the merge ref.
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        # npm ci is used for a clean, deterministic install based on package-lock.json
+        run: npm ci
+
+      - name: Run code formatting
+        run: npm run format
+
+      - name: Check for modified files
+        id: git-check
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit formatted code
+        if: steps.git-check.outputs.has_changes == 'true'
+        # Uses a community action to commit changes back to the current branch
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: Formatted the code automatically"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          file_pattern: ".github/workflows/**/*.yml *.json src/**/*.ts"
   #
   #   # -------------------------------------------------------------
   #   # 2. Linting Job
