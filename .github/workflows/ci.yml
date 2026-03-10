@@ -109,6 +109,17 @@ jobs:
         # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
         run: npm run test:unit
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
   # -------------------------------------------------------------
   # 4. Integration Tests Job
   # -------------------------------------------------------------

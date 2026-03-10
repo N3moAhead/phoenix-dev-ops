@@ -2,10 +2,13 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import path from "node:path";
 import { mkdir, writeFile, rm } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { createDocsApp } from "../src/index.js";
 
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+
 describe("Integration Tests: Docs Server", () => {
-  const docsDir = path.resolve(__dirname, "__fixtures__", "docs");
+  const docsDir = path.resolve(testDir, "__fixtures__", "docs");
 
   beforeAll(async () => {
     // Setup temporary markdown files
@@ -21,7 +24,7 @@ describe("Integration Tests: Docs Server", () => {
 
   afterAll(async () => {
     // Cleanup
-    await rm(path.resolve(__dirname, "__fixtures__"), {
+    await rm(path.resolve(testDir, "__fixtures__"), {
       recursive: true,
       force: true,
     });
