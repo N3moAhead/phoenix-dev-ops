@@ -1,169 +1,169 @@
-# name: CI/CD Pipeline
-#
-# on:
-#   push:
-#     branches:
-#       - main
-#   pull_request:
-#     branches:
-#       - main
-#
-# jobs:
-#   # -------------------------------------------------------------
-#   # 1. Formatting and Auto-Commit Job
-#   # -------------------------------------------------------------
-#   # This job automatically formats the code (e.g., using Prettier) and commits
-#   # the changes back to the branch. This ensures all code is consistently formatted.
-#   format:
-#     name: Format Code and Commit
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#         with:
-#           # Requires a Personal Access Token (PAT) if you want to trigger subsequent workflows with the commit
-#           # Using github.head_ref ensures we checkout the PR branch rather than the merge commit.
-#           token: ${{ secrets.GITHUB_TOKEN }}
-#           ref: ${{ github.head_ref }}
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         # npm ci is used for a clean, deterministic install based on package-lock.json
-#         run: npm ci
-#
-#       - name: Run code formatting
-#         # TODO: Add a "format" script in package.json (e.g., "prettier --write .")
-#         run: npm run format
-#
-#       - name: Commit formatted code
-#         # Uses a community action to commit changes back to the current branch
-#         uses: stefanzweifel/git-auto-commit-action@v5
-#         with:
-#           commit_message: "chore: apply automated code formatting"
-#           file_pattern: "src/**/*.ts package.json"
-#
-#   # -------------------------------------------------------------
-#   # 2. Linting Job
-#   # -------------------------------------------------------------
-#   # This job runs static code analysis (e.g., ESLint) to catch potential bugs
-#   # or style violations before testing.
-#   lint:
-#     name: Lint Code
-#     # We wait for the formatting job to finish to avoid conflicts
-#     needs: format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20.19.0' # AI suggested using a Node version that satisfies ESLint 10’s engine requirement
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Run linter
-#         # TODO: Add a "lint" script in package.json (e.g., "eslint src/**/*.ts")
-#         run: npm run lint
-#
-#   # -------------------------------------------------------------
-#   # 3. Unit Tests Job
-#   # -------------------------------------------------------------
-#   # This job isolates individual functions and modules to test their behavior.
-#   unit-test:
-#     name: Run Unit Tests
-#     needs: format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Run unit tests
-#         # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
-#         run: npm run test:unit
-#
-#   # -------------------------------------------------------------
-#   # 4. Integration Tests Job
-#   # -------------------------------------------------------------
-#   # This job tests the interaction between different components, such as
-#   # starting the Express server and making HTTP requests against it.
-#   integration-test:
-#     name: Run Integration Tests
-#     needs: format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Build the project
-#         # Compiles TypeScript to JavaScript (dist/ folder) before running integration tests
-#         run: npm run build
-#
-#       - name: Run integration tests
-#         # TODO: Add a "test:integration" script in package.json.
-#         # This script should ideally build the app, start the Express server, run requests, and teardown.
-#         run: npm run test:integration
-#
-#   # -------------------------------------------------------------
-#   # 5. Deployment / Publish Job
-#   # -------------------------------------------------------------
-#   # This job deploys the package to the npm registry. It should only run
-#   # on the 'main' branch after all tests and linting have passed.
-#   publish:
-#     name: Publish to NPM
-#     # Ensures all previous checks have passed before publishing
-#     needs: [lint, unit-test, integration-test]
-#     runs-on: ubuntu-latest
-#     # Only publish on pushes to the main branch (ignore pull requests)
-#     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#           # Setup authentication for the npm registry
-#           registry-url: 'https://registry.npmjs.org/'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Build the project
-#         # Ensure we have a fresh build in the dist/ folder before publishing
-#         run: npm run build
-#
-#       - name: Publish to NPM registry
-#         # Publishes the package. Uses the NPM_TOKEN secret configured in your GitHub repository secrets.
-#         # Requires an NPM_TOKEN secret.
-#         run: npm publish --access public
-#         env:
-#           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # -------------------------------------------------------------
+  # 1. Formatting and Auto-Commit Job
+  # -------------------------------------------------------------
+  # This job automatically formats the code (e.g., using Prettier) and commits
+  # the changes back to the branch. This ensures all code is consistently formatted.
+  format:
+    name: Format Code and Commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Requires a Personal Access Token (PAT) if you want to trigger subsequent workflows with the commit
+          # Using github.head_ref ensures we checkout the PR branch rather than the merge commit.
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        # npm ci is used for a clean, deterministic install based on package-lock.json
+        run: npm ci
+
+      - name: Run code formatting
+        # TODO: Add a "format" script in package.json (e.g., "prettier --write .")
+        run: npm run format
+
+      - name: Commit formatted code
+        # Uses a community action to commit changes back to the current branch
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: apply automated code formatting"
+          file_pattern: "src/**/*.ts package.json"
+
+  # -------------------------------------------------------------
+  # 2. Linting Job
+  # -------------------------------------------------------------
+  # This job runs static code analysis (e.g., ESLint) to catch potential bugs
+  # or style violations before testing.
+  lint:
+    name: Lint Code
+    # We wait for the formatting job to finish to avoid conflicts
+    needs: format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.19.0' # AI suggested using a Node version that satisfies ESLint 10’s engine requirement
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        # TODO: Add a "lint" script in package.json (e.g., "eslint src/**/*.ts")
+        run: npm run lint
+
+  # -------------------------------------------------------------
+  # 3. Unit Tests Job
+  # -------------------------------------------------------------
+  # This job isolates individual functions and modules to test their behavior.
+  unit-test:
+    name: Run Unit Tests
+    needs: format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
+        run: npm run test:unit
+
+  # -------------------------------------------------------------
+  # 4. Integration Tests Job
+  # -------------------------------------------------------------
+  # This job tests the interaction between different components, such as
+  # starting the Express server and making HTTP requests against it.
+  integration-test:
+    name: Run Integration Tests
+    needs: format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the project
+        # Compiles TypeScript to JavaScript (dist/ folder) before running integration tests
+        run: npm run build
+
+      - name: Run integration tests
+        # TODO: Add a "test:integration" script in package.json.
+        # This script should ideally build the app, start the Express server, run requests, and teardown.
+        run: npm run test:integration
+
+  # -------------------------------------------------------------
+  # 5. Deployment / Publish Job
+  # -------------------------------------------------------------
+  # This job deploys the package to the npm registry. It should only run
+  # on the 'main' branch after all tests and linting have passed.
+  publish:
+    name: Publish to NPM
+    # Ensures all previous checks have passed before publishing
+    needs: [lint, unit-test, integration-test]
+    runs-on: ubuntu-latest
+    # Only publish on pushes to the main branch (ignore pull requests)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          # Setup authentication for the npm registry
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the project
+        # Ensure we have a fresh build in the dist/ folder before publishing
+        run: npm run build
+
+      - name: Publish to NPM registry
+        # Publishes the package. Uses the NPM_TOKEN secret configured in your GitHub repository secrets.
+        # Requires an NPM_TOKEN secret.
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
