@@ -89,27 +89,25 @@ jobs:
   #   # 3. Unit Tests Job
   #   # -------------------------------------------------------------
   #   # This job isolates individual functions and modules to test their behavior.
-  #   unit-test:
-  #     name: Run Unit Tests
-  #     needs: format
-  #     runs-on: ubuntu-latest
-  #     steps:
-  #       - name: Checkout repository
-  #         uses: actions/checkout@v4
-  #
-  #       - name: Setup Node.js
-  #         uses: actions/setup-node@v4
-  #         with:
-  #           node-version: '20'
-  #           cache: 'npm'
-  #
-  #       - name: Install dependencies
-  #         run: npm ci
-  #
-  #       - name: Run unit tests
-  #         # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
-  #         run: npm run test:unit
+  unit-test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    # Re-add `needs: format` once the formatting job exists in this workflow.
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
   # -------------------------------------------------------------
   # 4. Integration Tests Job
   # -------------------------------------------------------------
