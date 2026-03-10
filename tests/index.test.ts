@@ -1,8 +1,8 @@
-import assert from "node:assert/strict";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { afterEach, test } from "node:test";
+import { afterEach, describe, expect, it } from "vitest";
+import request from "supertest";
 
 import { createDocsApp } from "../src/index.js";
 
@@ -25,90 +25,57 @@ async function createDocsFixture(files: Record<string, string>) {
   return docsDir;
 }
 
-async function withServer(
-  docsDir: string,
-  requestPath: string,
-  options?: { basePath?: string; title?: string }
-) {
-  const app = createDocsApp({ docsDir, ...options });
-  const server = await new Promise<import("node:http").Server>((resolve) => {
-    const instance = app.listen(0, () => resolve(instance));
+describe("Unit Tests: Docs Server", () => {
+  it("serves index.md from the root route", async () => {
+    const docsDir = await createDocsFixture({
+      "index.md": "# Welcome\n\nThis is the homepage."
+    });
+
+    const app = createDocsApp({ docsDir });
+    const response = await request(app).get("/");
+
+    expect(response.status).toBe(200);
+    expect(response.type).toBe("text/html");
+    expect(response.text).toContain("<title>Documentation</title>");
+    expect(response.text).toContain("<h1>Welcome</h1>");
+    expect(response.text).toContain("This is the homepage.");
   });
 
-  resources.push(
-    () =>
-      new Promise<void>((resolve, reject) => {
-        server.close((error) => {
-          if (error) {
-            reject(error);
-            return;
-          }
+  it("normalizes a custom base path and applies the configured title", async () => {
+    const docsDir = await createDocsFixture({
+      "getting-started.md": "## Getting Started",
+      "api/index.md": "# API Reference"
+    });
 
-          resolve();
-        });
-      })
-  );
+    const app = createDocsApp({
+      docsDir,
+      basePath: "/docs/",
+      title: "Team Docs"
+    });
 
-  const address = server.address();
-  if (address === null || typeof address === "string") {
-    throw new Error("Expected an ephemeral TCP port for the test server.");
-  }
+    const gettingStarted = await request(app).get("/docs/getting-started");
+    expect(gettingStarted.status).toBe(200);
+    expect(gettingStarted.text).toContain("<h2>Getting Started</h2>");
 
-  return fetch(`http://127.0.0.1:${address.port}${requestPath}`);
-}
-
-test("serves index.md from the root route", async () => {
-  const docsDir = await createDocsFixture({
-    "index.md": "# Welcome\n\nThis is the homepage."
+    const apiOverview = await request(app).get("/docs/api");
+    expect(apiOverview.status).toBe(200);
+    expect(apiOverview.text).toContain("<title>Team Docs</title>");
+    expect(apiOverview.text).toContain("<h1>API Reference</h1>");
   });
 
-  const response = await withServer(docsDir, "/");
+  it("returns a JSON 404 response when no markdown file matches the route", async () => {
+    const docsDir = await createDocsFixture({
+      "index.md": "# Home"
+    });
 
-  assert.equal(response.status, 200);
-  assert.equal(response.headers.get("content-type"), "text/html; charset=utf-8");
+    const app = createDocsApp({ docsDir });
+    const response = await request(app).get("/missing-page");
 
-  const html = await response.text();
-  assert.match(html, /<title>Documentation<\/title>/);
-  assert.match(html, /<h1>Welcome<\/h1>/);
-  assert.match(html, /This is the homepage\./);
-});
-
-test("resolves markdown files and nested index routes under a custom base path", async () => {
-  const docsDir = await createDocsFixture({
-    "getting-started.md": "## Getting Started",
-    "api/index.md": "# API Reference"
-  });
-
-  const gettingStarted = await withServer(docsDir, "/docs/getting-started", {
-    basePath: "/docs/",
-    title: "Team Docs"
-  });
-
-  assert.equal(gettingStarted.status, 200);
-  assert.match(await gettingStarted.text(), /<h2>Getting Started<\/h2>/);
-
-  const apiOverview = await withServer(docsDir, "/docs/api", {
-    basePath: "/docs/",
-    title: "Team Docs"
-  });
-
-  assert.equal(apiOverview.status, 200);
-  const html = await apiOverview.text();
-  assert.match(html, /<title>Team Docs<\/title>/);
-  assert.match(html, /<h1>API Reference<\/h1>/);
-});
-
-test("returns a JSON 404 response when no markdown file matches the route", async () => {
-  const docsDir = await createDocsFixture({
-    "index.md": "# Home"
-  });
-
-  const response = await withServer(docsDir, "/missing-page");
-
-  assert.equal(response.status, 404);
-  assert.equal(response.headers.get("content-type"), "application/json; charset=utf-8");
-  assert.deepEqual(await response.json(), {
-    error: "Not Found",
-    message: "No markdown file found for route /missing-page"
+    expect(response.status).toBe(404);
+    expect(response.type).toBe("application/json");
+    expect(response.body).toEqual({
+      error: "Not Found",
+      message: "No markdown file found for route /missing-page"
+    });
   });
 });
