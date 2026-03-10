@@ -57,90 +57,87 @@ jobs:
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           file_pattern: ".github/workflows/**/*.yml *.json src/**/*.ts"
-#
-#   # -------------------------------------------------------------
-#   # 2. Linting Job
-#   # -------------------------------------------------------------
-#   # This job runs static code analysis (e.g., ESLint) to catch potential bugs
-#   # or style violations before testing.
-#   lint:
-#     name: Lint Code
-#     # We wait for the formatting job to finish to avoid conflicts
-#     needs: format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Run linter
-#         # TODO: Add a "lint" script in package.json (e.g., "eslint src/**/*.ts")
-#         run: npm run lint
-#
-#   # -------------------------------------------------------------
-#   # 3. Unit Tests Job
-#   # -------------------------------------------------------------
-#   # This job isolates individual functions and modules to test their behavior.
-#   unit-test:
-#     name: Run Unit Tests
-#     needs: format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Run unit tests
-#         # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
-#         run: npm run test:unit
-#
-#   # -------------------------------------------------------------
-#   # 4. Integration Tests Job
-#   # -------------------------------------------------------------
-#   # This job tests the interaction between different components, such as
-#   # starting the Express server and making HTTP requests against it.
-#   integration-test:
-#     name: Run Integration Tests
-#     needs: format
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v4
-#
-#       - name: Setup Node.js
-#         uses: actions/setup-node@v4
-#         with:
-#           node-version: '20'
-#           cache: 'npm'
-#
-#       - name: Install dependencies
-#         run: npm ci
-#
-#       - name: Build the project
-#         # Compiles TypeScript to JavaScript (dist/ folder) before running integration tests
-#         run: npm run build
-#
-#       - name: Run integration tests
-#         # TODO: Add a "test:integration" script in package.json.
-#         # This script should ideally build the app, start the Express server, run requests, and teardown.
-#         run: npm run test:integration
-#
+  #
+  #   # -------------------------------------------------------------
+  #   # 2. Linting Job
+  #   # -------------------------------------------------------------
+  #   # This job runs static code analysis (e.g., ESLint) to catch potential bugs
+  #   # or style violations before testing.
+  #   lint:
+  #     name: Lint Code
+  #     # We wait for the formatting job to finish to avoid conflicts
+  #     needs: format
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - name: Checkout repository
+  #         uses: actions/checkout@v4
+  #
+  #       - name: Setup Node.js
+  #         uses: actions/setup-node@v4
+  #         with:
+  #           node-version: '20'
+  #           cache: 'npm'
+  #
+  #       - name: Install dependencies
+  #         run: npm ci
+  #
+  #       - name: Run linter
+  #         # TODO: Add a "lint" script in package.json (e.g., "eslint src/**/*.ts")
+  #         run: npm run lint
+  #
+  #   # -------------------------------------------------------------
+  #   # 3. Unit Tests Job
+  #   # -------------------------------------------------------------
+  #   # This job isolates individual functions and modules to test their behavior.
+  #   unit-test:
+  #     name: Run Unit Tests
+  #     needs: format
+  #     runs-on: ubuntu-latest
+  #     steps:
+  #       - name: Checkout repository
+  #         uses: actions/checkout@v4
+  #
+  #       - name: Setup Node.js
+  #         uses: actions/setup-node@v4
+  #         with:
+  #           node-version: '20'
+  #           cache: 'npm'
+  #
+  #       - name: Install dependencies
+  #         run: npm ci
+  #
+  #       - name: Run unit tests
+  #         # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
+  #         run: npm run test:unit
+
+  # -------------------------------------------------------------
+  # 4. Integration Tests Job
+  # -------------------------------------------------------------
+  # This job tests the interaction between different components, such as
+  # starting the Express server and making HTTP requests against it.
+  integration-test:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the project
+        # Compiles TypeScript to JavaScript (dist/ folder) before running integration tests
+        run: npm run build
+
+      - name: Run integration tests
+        run: npm run test:integration
+
 #   # -------------------------------------------------------------
 #   # 5. Deployment / Publish Job
 #   # -------------------------------------------------------------
