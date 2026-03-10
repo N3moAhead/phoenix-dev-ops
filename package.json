@@ -19,7 +19,8 @@
     "dev": "tsc -w -p tsconfig.json",
     "clean": "rm -rf dist",
     "test:unit:build": "tsc -p tsconfig.test.json",
-    "test:unit": "npm run test:unit:build && node --test --test-isolation=none"
+    "test:unit": "npm run test:unit:build && node --test --test-isolation=none",
+    "test:integration": "vitest run tests/integration.test.ts"
   },
   "keywords": [
     "docs",
@@ -35,7 +36,10 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
-    "@types/node": "^22.19.15",
-    "typescript": "^5.8.2"
+    "@types/node": "^22.14.0",
+    "@types/supertest": "^7.2.0",
+    "supertest": "^7.2.2",
+    "typescript": "^5.8.2",
+    "vitest": "^4.0.18"
   }
 }
