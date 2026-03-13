@@ -1,5 +1,7 @@
 # phoenix-dev-ops
 
+[![CI/CD Pipeline](https://github.com/N3moAhead/phoenix-dev-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/N3moAhead/phoenix-dev-ops/actions/workflows/ci.yml)
+
 A TypeScript npm package that serves Markdown documentation over Express as styled
 HTML pages.
 
@@ -11,8 +13,8 @@ Each rendered page also includes a lightweight summary card with:
 - the first paragraph as a quick excerpt
 
 This repository was also used as a DevOps course project to demonstrate a
-multi-stage CI/CD pipeline with formatting, linting, unit tests, and
-integration tests.
+multi-stage CI/CD pipeline with formatting, linting, unit tests, integration
+tests, and deployment packaging.
 
 ## Features
 
@@ -21,7 +23,8 @@ integration tests.
 - Route resolution for flat files and nested `index.md` pages
 - Automatic document summary generation
 - Unit and integration tests with Vitest
-- GitHub Actions workflow for formatting, linting, and automated testing
+- GitHub Actions workflow for formatting, linting, automated testing, and
+  deployment artifacts
 
 ## Requirements
 
@@ -54,6 +57,17 @@ startDocsServer({
 - `/docs` -> `docs/index.md`
 - `/docs/getting-started` -> `docs/getting-started.md`
 - `/docs/api` -> `docs/api/index.md`
+
+### Included demo content
+
+The repository includes a ready-to-use demo document set under `examples/docs/`.
+It is intended for local manual testing and course presentations.
+
+Example routes when `docsDir` points to `./examples/docs`:
+
+- `/docs` -> `examples/docs/index.md`
+- `/docs/getting-started` -> `examples/docs/getting-started.md`
+- `/docs/api` -> `examples/docs/api/index.md`
 
 ### What the rendered page contains
 
@@ -124,15 +138,20 @@ npm run lint
 npm run build
 npm run test:unit
 npm run test:integration
+npm run deploy:test
+npm run verify
 ```
 
 What each script does:
 
 - `format`: formats the repository with Prettier
-- `lint`: runs ESLint on the TypeScript source files
+- `lint`: runs ESLint on the TypeScript source and test files
 - `build`: compiles TypeScript into ESM output under `dist/`
 - `test:unit`: runs the unit test suite
 - `test:integration`: runs the integration test suite
+- `deploy:prepare`: prepares the deployment target from the current build output
+- `deploy:test`: rebuilds the project and simulates the deployment step locally
+- `verify`: runs lint, build, unit tests, and integration tests in sequence
 
 ### Suggested local validation order
 
@@ -143,6 +162,13 @@ npm run lint
 npm run build
 npm run test:unit
 npm run test:integration
+npm run deploy:test
+```
+
+Or run the combined verification command:
+
+```bash
+npm run verify
 ```
 
 ## Test Strategy
@@ -173,6 +199,11 @@ Markdown fixtures, including:
 |-- src/
 |   |-- index.ts
 |   `-- documentSummary.ts
+|-- examples/
+|   `-- docs/
+|       |-- index.md
+|       |-- getting-started.md
+|       `-- api/index.md
 |-- tests/
 |   |-- index.test.ts
 |   |-- document-summary.test.ts
@@ -192,6 +223,7 @@ The pipeline runs on:
 
 - pushes to `main`
 - pull requests targeting `main`
+- manual execution through `workflow_dispatch`
 
 ### Implemented jobs
 
@@ -202,6 +234,8 @@ The pipeline runs on:
 - checks whether files changed
 - commits formatting changes back to the branch through
   `stefanzweifel/git-auto-commit-action`
+- includes source files, tests, Markdown files, workflow files, and key config
+  files in the formatting commit scope
 
 This keeps the codebase consistently formatted and reduces style-only review
 noise.
@@ -232,7 +266,18 @@ behavior.
 This verifies that the Express app, Markdown input, and route resolution work
 together end to end.
 
-#### 5. Publish to npm
+#### 5. Package and Deploy Artifact
+
+- waits for linting and both test stages
+- rebuilds the project
+- prepares a deployment target directory from the build output
+- writes deployment metadata for traceability
+- uploads the deployed bundle as a GitHub Actions artifact
+
+This provides a concrete deploy stage without requiring a live production
+registry or external server.
+
+#### 6. Publish to npm
 
 A publish job scaffold is present in the workflow file but is currently
 commented out. It can be activated later once the package release process is
