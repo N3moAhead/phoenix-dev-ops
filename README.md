@@ -2,6 +2,13 @@
 
 A TypeScript npm package to serve markdown docs over Express as styled HTML pages.
 
+Each rendered page also includes a lightweight summary card with:
+
+- an estimated reading time
+- a word count
+- detected markdown headings
+- the first paragraph as a quick excerpt
+
 ## Install
 
 ```bash
