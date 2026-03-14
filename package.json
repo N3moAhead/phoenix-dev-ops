@@ -18,10 +18,13 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -w -p tsconfig.json",
     "clean": "rm -rf dist",
-    "lint": "eslint src --ext .ts",
-    "test:unit": "vitest run tests/index.test.ts",
+    "deploy:prepare": "node scripts/prepare-deployment.mjs",
+    "deploy:test": "npm run build && npm run deploy:prepare",
+    "lint": "eslint src tests --ext .ts",
+    "test:unit": "vitest run tests/index.test.ts tests/document-summary.test.ts",
     "format": "prettier --write .",
-    "test:integration": "vitest run tests/integration.test.ts"
+    "test:integration": "vitest run tests/integration.test.ts",
+    "verify": "npm run lint && npm run build && npm run test:unit && npm run test:integration"
   },
   "keywords": [
     "docs",
@@ -42,7 +45,6 @@
     "@typescript-eslint/eslint-plugin": "^8.56.1",
     "@typescript-eslint/parser": "^8.56.1",
     "eslint": "^10.0.3",
-    "typescript": "^5.8.2",
     "typescript-eslint": "^8.56.1",
     "prettier": "^3.8.1",
     "typescript": "^5.8.2",

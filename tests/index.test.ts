@@ -9,7 +9,12 @@ import { createDocsApp } from "../src/index.js";
 const resources: Array<() => Promise<void>> = [];
 
 afterEach(async () => {
-  await Promise.all(resources.splice(0).reverse().map((cleanup) => cleanup()));
+  await Promise.all(
+    resources
+      .splice(0)
+      .reverse()
+      .map((cleanup) => cleanup()),
+  );
 });
 
 async function createDocsFixture(files: Record<string, string>) {
@@ -28,7 +33,7 @@ async function createDocsFixture(files: Record<string, string>) {
 describe("Unit Tests: Docs Server", () => {
   it("serves index.md from the root route", async () => {
     const docsDir = await createDocsFixture({
-      "index.md": "# Welcome\n\nThis is the homepage."
+      "index.md": "# Welcome\n\nThis is the homepage.",
     });
 
     const app = createDocsApp({ docsDir });
@@ -37,6 +42,9 @@ describe("Unit Tests: Docs Server", () => {
     expect(response.status).toBe(200);
     expect(response.type).toBe("text/html");
     expect(response.text).toContain("<title>Documentation</title>");
+    expect(response.text).toContain("Document summary");
+    expect(response.text).toContain("Reading time");
+    expect(response.text).toContain("Words");
     expect(response.text).toContain("<h1>Welcome</h1>");
     expect(response.text).toContain("This is the homepage.");
   });
@@ -44,13 +52,13 @@ describe("Unit Tests: Docs Server", () => {
   it("normalizes a custom base path and applies the configured title", async () => {
     const docsDir = await createDocsFixture({
       "getting-started.md": "## Getting Started",
-      "api/index.md": "# API Reference"
+      "api/index.md": "# API Reference",
     });
 
     const app = createDocsApp({
       docsDir,
       basePath: "/docs/",
-      title: "Team Docs"
+      title: "Team Docs",
     });
 
     const gettingStarted = await request(app).get("/docs/getting-started");
@@ -61,11 +69,13 @@ describe("Unit Tests: Docs Server", () => {
     expect(apiOverview.status).toBe(200);
     expect(apiOverview.text).toContain("<title>Team Docs</title>");
     expect(apiOverview.text).toContain("<h1>API Reference</h1>");
+    expect(apiOverview.text).toContain("Sections");
+    expect(apiOverview.text).toContain("H1");
   });
 
   it("returns a JSON 404 response when no markdown file matches the route", async () => {
     const docsDir = await createDocsFixture({
-      "index.md": "# Home"
+      "index.md": "# Home",
     });
 
     const app = createDocsApp({ docsDir });
@@ -75,7 +85,7 @@ describe("Unit Tests: Docs Server", () => {
     expect(response.type).toBe("application/json");
     expect(response.body).toEqual({
       error: "Not Found",
-      message: "No markdown file found for route /missing-page"
+      message: "No markdown file found for route /missing-page",
     });
   });
 });

@@ -5,15 +5,15 @@ import { marked } from "marked";
 const DEFAULT_TITLE = "Documentation";
 const DEFAULT_BASE_PATH = "/";
 marked.setOptions({
-    gfm: true,
-    breaks: true
+  gfm: true,
+  breaks: true,
 });
 function normalizeBasePath(basePath) {
-    const normalized = `/${basePath}`.replace(/\/+/, "/").replace(/\/$/, "");
-    return normalized === "" ? "/" : normalized;
+  const normalized = `/${basePath}`.replace(/\/+/, "/").replace(/\/$/, "");
+  return normalized === "" ? "/" : normalized;
 }
 function htmlTemplate(title, content) {
-    return `<!doctype html>
+  return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -97,49 +97,50 @@ function htmlTemplate(title, content) {
 </html>`;
 }
 function resolveRequestedFile(docsDir, reqPath) {
-    const safePath = path.posix
-        .normalize(`/${reqPath}`)
-        .replace(/^\/+/, "")
-        .replace(/\.\.(\/|\\|$)/g, "");
-    const candidates = safePath === ""
-        ? ["index.md"]
-        : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")];
-    return candidates.map((candidate) => path.resolve(docsDir, candidate));
+  const safePath = path.posix
+    .normalize(`/${reqPath}`)
+    .replace(/^\/+/, "")
+    .replace(/\.\.(\/|\\|$)/g, "");
+  const candidates =
+    safePath === ""
+      ? ["index.md"]
+      : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")];
+  return candidates.map((candidate) => path.resolve(docsDir, candidate));
 }
 export function createDocsApp(options) {
-    const docsDir = path.resolve(options.docsDir);
-    const title = options.title ?? DEFAULT_TITLE;
-    const basePath = normalizeBasePath(options.basePath ?? DEFAULT_BASE_PATH);
-    const app = express();
-    const routes = basePath === "/" ? ["/", "/*docPath"] : [basePath, `${basePath}/*docPath`];
-    app.get(routes, async (req, res) => {
-        const reqPath = req.params.docPath ?? "";
-        const candidates = resolveRequestedFile(docsDir, reqPath);
-        for (const candidate of candidates) {
-            if (!candidate.startsWith(docsDir)) {
-                continue;
-            }
-            try {
-                const markdown = await readFile(candidate, "utf8");
-                const renderedHtml = await marked.parse(markdown);
-                res.status(200).type("html").send(htmlTemplate(title, renderedHtml));
-                return;
-            }
-            catch {
-                // Missing/unreadable file, continue to next candidate.
-            }
-        }
-        res.status(404).json({
-            error: "Not Found",
-            message: `No markdown file found for route /${reqPath}`
-        });
+  const docsDir = path.resolve(options.docsDir);
+  const title = options.title ?? DEFAULT_TITLE;
+  const basePath = normalizeBasePath(options.basePath ?? DEFAULT_BASE_PATH);
+  const app = express();
+  const routes =
+    basePath === "/" ? ["/", "/*docPath"] : [basePath, `${basePath}/*docPath`];
+  app.get(routes, async (req, res) => {
+    const reqPath = req.params.docPath ?? "";
+    const candidates = resolveRequestedFile(docsDir, reqPath);
+    for (const candidate of candidates) {
+      if (!candidate.startsWith(docsDir)) {
+        continue;
+      }
+      try {
+        const markdown = await readFile(candidate, "utf8");
+        const renderedHtml = await marked.parse(markdown);
+        res.status(200).type("html").send(htmlTemplate(title, renderedHtml));
+        return;
+      } catch {
+        // Missing/unreadable file, continue to next candidate.
+      }
+    }
+    res.status(404).json({
+      error: "Not Found",
+      message: `No markdown file found for route /${reqPath}`,
     });
-    return app;
+  });
+  return app;
 }
 export function startDocsServer(options) {
-    const port = options.port ?? 3000;
-    const app = createDocsApp(options);
-    return app.listen(port, () => {
-        console.log(`Docs server running at http://localhost:${port}`);
-    });
+  const port = options.port ?? 3000;
+  const app = createDocsApp(options);
+  return app.listen(port, () => {
+    console.log(`Docs server running at http://localhost:${port}`);
+  });
 }

@@ -35,6 +35,8 @@ describe("Integration Tests: Docs Server", () => {
     const response = await request(app).get("/");
     expect(response.status).toBe(200);
     expect(response.type).toBe("text/html");
+    expect(response.text).toContain("Document summary");
+    expect(response.text).toContain("Reading time");
     expect(response.text).toContain("Welcome to home.");
     expect(response.text).toContain("<h1>Home</h1>");
   });
@@ -69,5 +71,6 @@ describe("Integration Tests: Docs Server", () => {
     const response = await request(app).get("/docs/about");
     expect(response.status).toBe(200);
     expect(response.text).toContain("About page.");
+    expect(response.text).toContain("Sections");
   });
 });

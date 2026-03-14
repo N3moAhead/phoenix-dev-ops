@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   # -------------------------------------------------------------
@@ -56,7 +57,7 @@ jobs:
           commit_message: "style: Formatted the code automatically"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          file_pattern: ".github/workflows/**/*.yml *.json src/**/*.ts"
+          file_pattern: ".github/workflows/**/*.yml *.json src/**/*.ts tests/**/*.ts *.md examples/**/*.md eslint.config.js .gitignore"
 
     # -------------------------------------------------------------
     # 2. Linting Job
@@ -106,19 +107,6 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        # TODO: Add a "test:unit" script in package.json (e.g., using vitest or jest)
-        run: npm run test:unit
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run unit tests
         run: npm run test:unit
   # -------------------------------------------------------------
   # 4. Integration Tests Job
@@ -146,19 +134,54 @@ jobs:
         run: npm run build
 
       - name: Run integration tests
-        # TODO: Add a "test:integration" script in package.json.
-        # This script should ideally build the app, start the Express server, run requests, and teardown.
         run: npm run test:integration
 
   # -------------------------------------------------------------
-  # 5. Deployment / Publish Job
+  # 5. Deployment Job
   # -------------------------------------------------------------
-  # This job deploys the package to the npm registry. It should only run
-  # on the 'main' branch after all tests and linting have passed.
+  # Packages the build output and transfers it to a deployment target directory,
+  # which is then published as a GitHub Actions artifact.
+  deploy:
+    name: Package and Deploy Artifact
+    needs: [lint, unit-test, integration-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build the project
+        run: npm run build
+
+      - name: Prepare deployment target
+        run: npm run deploy:prepare
+
+      - name: Upload deployed artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployed-package-${{ github.sha }}
+          path: deployment/target
+          if-no-files-found: error
+          retention-days: 7
+
+  # -------------------------------------------------------------
+  # 6. Publish to Registry Job
+  # -------------------------------------------------------------
+  # This job would publish the package to the npm registry. It is intentionally
+  # kept as a future extension once a real release workflow is needed.
   # publish:
   #   name: Publish to NPM
   #   # Ensures all previous checks have passed before publishing
-  #   needs: [lint, unit-test, integration-test]
+  #   needs: [lint, unit-test, integration-test, deploy]
   #   runs-on: ubuntu-latest
   #   # Only publish on pushes to the main branch (ignore pull requests)
   #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'

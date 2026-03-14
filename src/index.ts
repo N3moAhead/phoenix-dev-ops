@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { marked } from "marked";
 
+import { summarizeDocument, type DocumentSummary } from "./documentSummary.js";
+
 export interface DocsServerOptions {
   docsDir: string;
   basePath?: string;
@@ -26,7 +28,53 @@ function normalizeBasePath(basePath: string): string {
   return normalized === "" ? "/" : normalized;
 }
 
-function htmlTemplate(title: string, content: string): string {
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function renderDocumentSummary(summary: DocumentSummary): string {
+  const headingList =
+    summary.headings.length === 0
+      ? ""
+      : `<ul class="doc-summary__headings">${summary.headings
+          .map(
+            (heading) =>
+              `<li><span class="doc-summary__heading-level">H${heading.level}</span>${escapeHtml(
+                heading.text,
+              )}</li>`,
+          )
+          .join("")}</ul>`;
+
+  return `<section class="doc-summary" aria-label="Document summary">
+    <div class="doc-summary__stats">
+      <div class="doc-summary__stat">
+        <span class="doc-summary__label">Reading time</span>
+        <strong>${summary.readingTimeMinutes} min</strong>
+      </div>
+      <div class="doc-summary__stat">
+        <span class="doc-summary__label">Words</span>
+        <strong>${summary.wordCount}</strong>
+      </div>
+      <div class="doc-summary__stat">
+        <span class="doc-summary__label">Sections</span>
+        <strong>${summary.sectionCount}</strong>
+      </div>
+    </div>
+    <p class="doc-summary__excerpt">${escapeHtml(summary.excerpt)}</p>
+    ${headingList}
+  </section>`;
+}
+
+function htmlTemplate(
+  title: string,
+  summary: DocumentSummary,
+  content: string,
+): string {
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -103,10 +151,62 @@ function htmlTemplate(title: string, content: string): string {
       padding: 0.5rem;
       text-align: left;
     }
+    .doc-summary {
+      margin-bottom: 1.5rem;
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(135deg, #eff6ff, #f8fafc);
+    }
+    .doc-summary__stats {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    .doc-summary__stat {
+      padding: 0.75rem;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    .doc-summary__label {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: #475569;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .doc-summary__excerpt {
+      margin: 1rem 0 0;
+      color: #1e293b;
+    }
+    .doc-summary__headings {
+      margin: 1rem 0 0;
+      padding-left: 1.1rem;
+      color: #334155;
+    }
+    .doc-summary__headings li + li {
+      margin-top: 0.35rem;
+    }
+    .doc-summary__heading-level {
+      display: inline-block;
+      min-width: 2.1rem;
+      margin-right: 0.5rem;
+      font-size: 0.8rem;
+      color: #0369a1;
+      font-weight: 700;
+    }
+    article > :first-child {
+      margin-top: 0;
+    }
   </style>
 </head>
 <body>
-  <main>${content}</main>
+  <main>
+    ${renderDocumentSummary(summary)}
+    <article>${content}</article>
+  </main>
 </body>
 </html>`;
 }
@@ -147,8 +247,12 @@ export function createDocsApp(options: DocsServerOptions): Express {
       try {
         const markdown = await readFile(candidate, "utf8");
         const renderedHtml = await marked.parse(markdown);
+        const summary = summarizeDocument(markdown);
 
-        res.status(200).type("html").send(htmlTemplate(title, renderedHtml));
+        res
+          .status(200)
+          .type("html")
+          .send(htmlTemplate(title, summary, renderedHtml));
         return;
       } catch {
         // Missing/unreadable file, continue to next candidate.
@@ -172,3 +276,6 @@ export function startDocsServer(options: StartServerOptions) {
     console.log(`Docs server running at http://localhost:${port}`);
   });
 }
+
+export { summarizeDocument };
+export type { DocumentHeading, DocumentSummary } from "./documentSummary.js";
