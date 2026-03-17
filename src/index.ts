@@ -222,36 +222,13 @@ function resolveRequestedFile(docsDir: string, reqPath: string): string[] {
       ? ["index.md"]
       : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")];
 
-  return candidates.map((
-    
-    
-    
-    
-    
-    
-    
-    
-    candidate) => path.resolve(
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+  return candidates.map((candidate) =>
+    path.resolve(
       docsDir,
-      
-      
-      
-      
-      
-      
-      
-      
-      candidate));
+
+      candidate,
+    ),
+  );
 }
 
 export function createDocsApp(options: DocsServerOptions): Express {
