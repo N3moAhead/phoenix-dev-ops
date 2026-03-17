@@ -57,7 +57,6 @@ jobs:
           commit_message: "style: Formatted the code automatically"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
-          file_pattern: ".github/workflows/**/*.yml *.json src/**/*.ts tests/**/*.ts *.md examples/**/*.md eslint.config.js .gitignore"
 
     # -------------------------------------------------------------
     # 2. Linting Job
