@@ -220,15 +220,50 @@ function resolveRequestedFile(docsDir: string, reqPath: string): string[] {
   const candidates =
     safePath === ""
       ? ["index.md"]
-      : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")];
+      : [safePath, `${safePath}.md`, path.posix.join(safePath, "index.md")
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      ];
 
-  return candidates.map((candidate) => path.resolve(docsDir, candidate));
+  return candidates.map((candidate) =>                                  path.resolve(                      docsDir, candidate));
 }
 
 export function createDocsApp(options: DocsServerOptions): Express {
   const docsDir = path.resolve(options.docsDir);
   const title = options.title ?? DEFAULT_TITLE;
-  const basePath = normalizeBasePath(options.basePath ?? DEFAULT_BASE_PATH);
+  const basePath = normalizeBasePath(
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    options.basePath ?? DEFAULT_BASE_PATH);
 
   const app = express();
 
@@ -246,7 +281,24 @@ export function createDocsApp(options: DocsServerOptions): Express {
 
       try {
         const markdown = await readFile(candidate, "utf8");
-        const renderedHtml = await marked.parse(markdown);
+        const renderedHtml = await marked.parse(
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          markdown);
         const summary = summarizeDocument(markdown);
 
         res
