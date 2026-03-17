@@ -245,8 +245,18 @@ export function createDocsApp(options: DocsServerOptions): Express {
       }
 
       try {
-        const markdown = await readFile(candidate, "utf8");
-        const renderedHtml = await marked.parse(markdown);
+        const markdown = await readFile(
+          
+          
+          
+          
+          candidate, "utf8");
+        const renderedHtml = await marked.parse(
+          
+          
+          
+          
+          markdown);
         const summary = summarizeDocument(markdown);
 
         res
